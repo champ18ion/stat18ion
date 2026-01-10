@@ -29,6 +29,7 @@ const sendEvent = (payload: any) => {
             body,
             headers: { 'Content-Type': 'application/json' },
             keepalive: true,
+            credentials: 'omit', // No cookies/auth needed for tracking
         }).catch((err) => console.error(err));
     }
 };

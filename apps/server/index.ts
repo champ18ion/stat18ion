@@ -15,10 +15,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret-key-change-me';
 // Middleware
 app.use(express.json());
 
-// 1. PUBLIC INGESTION ZONE: Always '*'
-// Allows any website in the world to send tracking data to your server
-app.options('/api/event', cors());
-app.post('/api/event', cors(), (req, res, next) => {
+// 1. PUBLIC INGESTION ZONE: Echoes back any origin
+// This satisfies browsers when credentials: 'include' is used by various frameworks
+const ingestionCors = cors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        // Echo back the requesting origin as the allowed origin
+        callback(null, true);
+    },
+    credentials: true,
+    optionsSuccessStatus: 200
+});
+
+app.options('/api/event', ingestionCors);
+app.post('/api/event', ingestionCors, (req, res, next) => {
     next();
 });
 
