@@ -6,7 +6,7 @@ type Config = {
 
 let config: Config = {
     siteId: '',
-    endpoint: '', // Should be provided via init
+    endpoint: 'https://stats.hashboard.in/api/event', // SaaS default (Replace with your actual domain)
 };
 
 const log = (message: string, ...args: any[]) => {

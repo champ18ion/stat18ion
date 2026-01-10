@@ -18,10 +18,9 @@ import { init } from 'stat18ion';
 
 init({
   siteId: 'YOUR_SITE_ID', 
-  // Optional: defaults to production endpoint
+  // Optional: defaults to Stat18ion SaaS endpoint
   // endpoint: 'https://api.your-domain.com/api/event', 
-  // Optional: enable logs in console
-  // debug: false 
+  debug: false 
 });
 ```
 
