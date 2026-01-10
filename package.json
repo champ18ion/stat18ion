@@ -2,6 +2,7 @@
   "name": "stat18ion-monorepo",
   "private": true,
   "version": "1.0.0",
+  "packageManager": "npm@10.8.2",
   "description": "Stat18ion Analytics Monorepo",
   "workspaces": [
     "apps/*",
@@ -12,5 +13,8 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3"
   }
 }
