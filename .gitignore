@@ -11,6 +11,7 @@ dist
 build
 .next
 out
+.turbo
 
 # Misc
 .DS_Store
@@ -33,4 +34,4 @@ ts-debug.log*
 .idea
 
 # Internal Docs
-DEPLOYMENT_GUIDE.md
+# DEPLOYMENT_GUIDE.md (Un-ignored for open source)
