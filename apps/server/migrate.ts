@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgres://stat18ion:password@72.61.239.209:5434/stat18ion',
+    connectionString: process.env.DATABASE_URL,
 });
 
 const migrate = async () => {

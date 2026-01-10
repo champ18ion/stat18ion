@@ -13,16 +13,31 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'secret-key-change-me';
 
 // Middleware
-const corsOptions = {
+app.use(express.json());
+
+// 1. PUBLIC INGESTION ZONE: Always '*'
+// Allows any website in the world to send tracking data to your server
+app.options('/api/event', cors());
+app.post('/api/event', cors(), (req, res, next) => {
+    next();
+});
+
+// 2. PRIVATE DASHBOARD ZONE: Restricted to your domain
+// Prevents other websites from trying to manage your sites or see your stats
+const dashboardCorsOptions = {
     origin: process.env.CORS_ORIGIN || '*',
     optionsSuccessStatus: 200
 };
-app.use(cors(corsOptions));
-app.use(express.json());
+app.use(cors(dashboardCorsOptions));
 
 // Database Connection
+if (!process.env.DATABASE_URL) {
+    console.error('ERROR: DATABASE_URL is not set in environment variables.');
+    process.exit(1);
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgres://stat18ion:password@72.61.239.209:5434/stat18ion',
+    connectionString: process.env.DATABASE_URL,
 });
 
 // Schemas
