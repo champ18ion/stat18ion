@@ -34,15 +34,19 @@ app.post('/api/event', ingestionCors, (req, res, next) => {
 // 2. PRIVATE DASHBOARD ZONE: Restricted to your domain
 const allowedOrigins = [
     process.env.CORS_ORIGIN,
-    'http://localhost:3000', // Local dashboard dev
-    'http://localhost:3001'  // Local server dev
+    'http://localhost:3000',
+    'http://localhost:3001'
 ].filter(Boolean);
 
+// If the list is empty or contains '*', we will allow any origin by mirroring it
+// (Required for credentials: true)
 const dashboardCorsOptions = {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        const allowAll = allowedOrigins.length === 0 || allowedOrigins.includes('*');
+        if (!origin || allowAll || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.warn(`Dashboard CORS blocked for origin: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
