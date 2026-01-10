@@ -65,6 +65,17 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
+pool.connect()
+    .then(client => {
+        console.log('✅ Database Connected Successfully');
+        client.release(); // Release the client back to the pool
+    })
+    .catch(err => {
+        console.error('❌ Database Connection Failed:', err.message);
+        // Optional: Exit process if DB is critical
+        // process.exit(1); 
+    });
+
 // Schemas
 const registerSchema = z.object({
     email: z.string().email(),
