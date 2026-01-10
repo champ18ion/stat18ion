@@ -2,6 +2,7 @@ type Config = {
     siteId: string;
     endpoint?: string;
     debug?: boolean;
+    trackLocal?: boolean; // New flag to control localhost tracking
 };
 
 let config: Config = {
@@ -33,9 +34,13 @@ const sendEvent = (payload: any) => {
 };
 
 const trackPageView = () => {
-    // Ignore localhost by default to avoid pollution
     const isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
-    if (isLocal && !config.debug) {
+
+    // Safety check: Don't send data from local dev unless explicitly asked
+    if (isLocal && !config.trackLocal) {
+        if (config.debug) {
+            log('Skipping event sending on localhost. Use trackLocal: true to enable.');
+        }
         return;
     }
 

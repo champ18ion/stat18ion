@@ -23,9 +23,21 @@ app.post('/api/event', cors(), (req, res, next) => {
 });
 
 // 2. PRIVATE DASHBOARD ZONE: Restricted to your domain
-// Prevents other websites from trying to manage your sites or see your stats
+const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    'http://localhost:3000', // Local dashboard dev
+    'http://localhost:3001'  // Local server dev
+].filter(Boolean);
+
 const dashboardCorsOptions = {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
     optionsSuccessStatus: 200
 };
 app.use(cors(dashboardCorsOptions));

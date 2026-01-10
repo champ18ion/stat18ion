@@ -1,6 +1,6 @@
 # Stat18ion Deployment & Publishing Guide
 
-> **INTERNAL USE ONLY**: This file contains sensitive operational details. Do not commit to public version control.
+Stat18ion is a full-stack analytics platform. This guide covers how to deploy the API, Dashboard, and SDK.
 
 ## 1. Publishing to NPM
 
@@ -35,9 +35,10 @@ This is a Monorepo containing two apps:
 - **Start Command**: `node dist/index.js`
 - **Environment Variables**:
     - `PORT`: (default 3001)
-    - `DATABASE_URL`: Connection string to Postgres (e.g. `postgres://user:pass@host:port/db`)
-    - `JWT_SECRET`: Random long string for auth tokens.
-    - `ADMIN_PASSWORD`: (Optional) For legacy admin login, though we now use DB users.
+    - `DATABASE_URL`: **REQUIRED**. Connection string to Postgres.
+    - `JWT_SECRET`: **REQUIRED**. Random long string for auth tokens.
+    - `CORS_ORIGIN`: **REQUIRED**. Set to your Dashboard URL (e.g., `https://stat18ion.com`).
+        - *Note: Ingestion (`/api/event`) is always open to all origins for tracking.*
 
 ### B. Dashboard (`apps/site`)
 - **Type**: Next.js App Router

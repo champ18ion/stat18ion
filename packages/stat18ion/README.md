@@ -18,29 +18,49 @@ import { init } from 'stat18ion';
 
 init({
   siteId: 'YOUR_SITE_ID', 
-  // Optional: defaults to Stat18ion SaaS endpoint
-  // endpoint: 'https://api.your-domain.com/api/event', 
-  debug: false 
+  debug: false,      // Set to true to see logs in console
+  trackLocal: false  // Set to true to send data from localhost/dev
 });
 ```
 
+### Configuration Options
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `siteId` | `string` | Required | Your unique Site UUID from the dashboard. |
+| `endpoint` | `string` | SaaS URL | Your backend event endpoint. |
+| `debug` | `boolean` | `false` | Enable console logging for events. |
+| `trackLocal` | `boolean` | `false` | If false, data is never sent from `localhost`. |
+
 ### Next.js Integration
 
-In `app/layout.tsx`:
+To keep your layout as a **Server Component** (for Metadata/SEO), create a small client-side component:
 
 ```tsx
+// components/StatTracker.tsx
 'use client';
 import { useEffect } from 'react';
 import { init } from 'stat18ion';
 
-export default function RootLayout({ children }) {
+export default function StatTracker() {
   useEffect(() => {
     init({ siteId: 'YOUR_UUID_HERE' });
   }, []);
+  return null;
+}
+```
 
+Then add it to your `app/layout.tsx`:
+
+```tsx
+import StatTracker from './components/StatTracker';
+
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <StatTracker />
+        {children}
+      </body>
     </html>
   );
 }
