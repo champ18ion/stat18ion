@@ -122,7 +122,11 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
     try {
+        // DEBUG: See what is actually arriving
+        // console.log('Login Payload:', req.body); 
+
         const { email, password } = registerSchema.parse(req.body);
+        
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
         if (result.rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
@@ -134,7 +138,15 @@ app.post('/api/auth/login', async (req, res) => {
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ token, userId: user.id });
-    } catch (err) {
+    } catch (err: any) {
+        // DEBUG: Log the exact error to your terminal
+        console.error('Login Failed:', err);
+
+        // If it is a Zod validation error, it will show you exactly which field failed
+        if (err.issues) {
+             console.log('Validation Issues:', JSON.stringify(err.issues, null, 2));
+        }
+
         res.status(400).json({ error: 'Invalid input' });
     }
 });
