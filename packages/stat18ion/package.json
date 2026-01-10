@@ -1,0 +1,23 @@
+{
+    "name": "stat18ion",
+    "version": "0.0.2",
+    "description": "Privacy-first, lightweight analytics tracker for the modern web.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "analytics",
+        "privacy",
+        "stat18ion",
+        "tracking"
+    ],
+    "author": "Stat18ion",
+    "license": "MIT",
+    "dependencies": {},
+    "devDependencies": {
+        "typescript": "^5.3.2"
+    }
+}
