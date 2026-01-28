@@ -115,15 +115,18 @@ const patchHistory = () => {
     });
 };
 
+let initialized = false;
+
 /**
  * Initialize Client-Side Tracking
  */
 export const init = (options: Config) => {
-    if (config.siteId) return;
+    if (initialized) return;
 
     config = { ...config, ...options };
-    if (!config.endpoint) return;
+    if (!config.siteId || !config.endpoint) return;
 
+    initialized = true;
     log('Initialized', config);
     trackPageView();
     patchHistory();

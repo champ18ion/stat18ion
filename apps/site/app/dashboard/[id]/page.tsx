@@ -300,69 +300,108 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                         </div>
 
                         <div className="space-y-8 text-left">
-                            {/* NPM Option */}
+                            {/* 1. Next.js Optimized */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">1. NPM Implementation (Modular)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-400 uppercase tracking-widest">Recommended</div>
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">1. Next.js (Optimized Provider)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-blue-400 uppercase tracking-widest font-bold">Best Practice</div>
                                 </div>
+                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
+                                    Keep your `layout.tsx` as a Server Component by using a dedicated client provider.
+                                </p>
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[300px] select-all scrollbar-thin">
+                                    {`// components/Stat18ion.tsx
+'use client';
+import { useEffect } from 'react';
+import { init } from 'stat18ion';
+
+export function Stat18ion() {
+  useEffect(() => {
+    init({ siteId: '${siteId}' });
+  }, []);
+  return null;
+}
+
+// app/layout.tsx
+import { Stat18ion } from './components/Stat18ion';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Stat18ion />
+        {children}
+      </body>
+    </html>
+  );
+}`}
+                                </pre>
+                            </div>
+
+                            {/* 2. Next.js Simple */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Next.js (Simple Client Layout)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">Plug n Play</div>
+                                </div>
+                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
+                                    Quickest integration if you don't mind a Client Component layout.
+                                </p>
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[250px] select-all scrollbar-thin">
+                                    {`// app/layout.tsx
+'use client';
+import { useEffect } from 'react';
+import { init } from 'stat18ion';
+
+export default function RootLayout({ children }) {
+  useEffect(() => {
+    init({ siteId: '${siteId}' });
+  }, []);
+
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}`}
+                                </pre>
+                            </div>
+
+                            {/* 3. Basic Vanilla React / Vite */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Vanilla React / Vite / SPA</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-400 uppercase tracking-widest">Universal</div>
+                                </div>
+                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
+                                    Standard implementation for any SPA framework (React, Vue, Svelte, or Vanilla).
+                                </p>
                                 <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center mb-2">
                                     <span>npm install stat18ion</span>
                                 </div>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
-                                    {`import { init } from 'stat18ion';
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[150px] select-all scrollbar-thin">
+                                    {`// App.js or main.js
+import { init } from 'stat18ion';
 
-init({
+init({ 
   siteId: '${siteId}',
   debug: false
 });`}
                                 </pre>
                             </div>
 
-                            {/* Next.js Provider */}
+                            {/* 4. Middleware */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Next.js App Router (Plug n Play)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-blue-400 uppercase tracking-widest">Recommended</div>
-                                </div>
-                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest">Create a component and drop it in your `layout.tsx` (Server Component safe):</p>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
-                                    {`'use client'
-
-import { useEffect } from 'react'
-import { init } from 'stat18ion'
-
-export function Stat18ionProvider() {
-  useEffect(() => {
-    init({ siteId: '${siteId}' })
-  }, [])
-  return null
-}`}
-                                </pre>
-                            </div>
-
-                            {/* Script tag */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Static Script (Zero-Config)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">CDN</div>
-                                </div>
-                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all">
-                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`}
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">4. Stealth Mode (Middleware)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-green-500/60 uppercase tracking-widest font-bold underline">100% Unblockable</div>
                                 </div>
                                 <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
-                                    We use **unpkg** for global delivery. Best for static sites (HTML/Liquid) where NPM is not available.
+                                    Pure server-side tracking via Edge Runtime. Zero client-side footprint.
                                 </p>
-                            </div>
-
-                            {/* Middleware */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">4. Unblockable (Server-Side)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-green-500/60 uppercase tracking-widest font-bold">Stealth</div>
-                                </div>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
-                                    {`import { trackServerEvent } from 'stat18ion';
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[300px] select-all scrollbar-thin">
+                                    {`// middleware.ts
+import { trackServerEvent } from 'stat18ion';
 
 export function middleware(req) {
   trackServerEvent({
@@ -373,15 +412,45 @@ export function middleware(req) {
 }
 
 export const config = {
-  // Aggressive filtering for static chunks, images, and system files
+  // Filters out images, chunks, and system files at the edge level
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\\\..*).*)'],
 };`}
                                 </pre>
                             </div>
+
+                            {/* 5. Script tag */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">5. Static Script (Zero-Config)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">CDN</div>
+                                </div>
+                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center">
+                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`}
+                                </div>
+                            </div>
+
+                            {/* Configuration Parameters */}
+                            <div className="p-4 border border-cyan-500/10 bg-cyan-950/20 rounded-sm">
+                                <h3 className="text-[10px] text-cyan-400 uppercase tracking-widest font-bold mb-3">Configuration Reference</h3>
+                                <div className="grid grid-cols-1 gap-3 text-[9px] uppercase tracking-tighter text-cyan-100/60">
+                                    <div className="flex justify-between border-b border-cyan-500/5 pb-1">
+                                        <span className="text-cyan-500">siteId (Required)</span>
+                                        <span>Your unique node identifier</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-cyan-500/5 pb-1">
+                                        <span className="text-cyan-500">endpoint (Optional)</span>
+                                        <span>Custom ingestion path (defaults to production)</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-cyan-500/5 pb-1">
+                                        <span className="text-cyan-500">debug (Optional)</span>
+                                        <span>Enable logs in console to verify events</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.9]</div>
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.10]</div>
                             <button
                                 onClick={() => setShowCodeSetup(false)}
                                 className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
@@ -395,7 +464,7 @@ export const config = {
 
             <footer className="mt-20 pt-12 border-t border-cyan-500/10 opacity-20 flex justify-between text-[8px] uppercase tracking-[0.4em]">
                 <div>System Status: OPERATIONAL</div>
-                <div>Stat18ion Analytics v0.1.9</div>
+                <div>Stat18ion Analytics v0.1.10</div>
             </footer>
         </div>
     );
