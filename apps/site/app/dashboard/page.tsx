@@ -279,16 +279,22 @@ init({
                                     {`import { trackServerEvent } from 'stat18ion';
 
 export function middleware(req) {
-  trackServerEvent(req, { 
-    siteId: '${selectedSiteForCode.id}' 
+  trackServerEvent({ 
+    siteId: '${selectedSiteForCode.id}',
+    path: req.nextUrl.pathname,
+    ua: req.headers.get('user-agent'),
   });
-}`}
+}
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};`}
                                 </pre>
                             </div>
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.3]</div>
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.5]</div>
                             <button
                                 onClick={() => setSelectedSiteForCode(null)}
                                 className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"

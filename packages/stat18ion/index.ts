@@ -37,14 +37,27 @@ const sendEvent = (payload: any) => {
     }
 };
 
+const isStaticAsset = (path: string) => {
+    const staticExtensions = [
+        '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.otf', '.json', '.map'
+    ];
+    return (
+        staticExtensions.some(ext => path.toLowerCase().endsWith(ext)) ||
+        path.includes('/_next/static/') ||
+        path.includes('/api/')
+    );
+};
+
 /**
  * Main function to track page views (Client-side)
  */
 const trackPageView = () => {
     if (typeof window === 'undefined') return;
 
-    const isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
+    const path = window.location.pathname;
+    if (isStaticAsset(path)) return;
 
+    const isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
     if (isLocal && !config.trackLocal) {
         log('Skipping event sending on localhost.');
         return;
@@ -52,7 +65,7 @@ const trackPageView = () => {
 
     const payload = {
         siteId: config.siteId,
-        path: window.location.pathname,
+        path: path,
         referrer: document.referrer,
         ua: navigator.userAgent,
         ts: Date.now(),
@@ -108,6 +121,8 @@ export const trackServerEvent = async (options: {
     ua?: string;
     endpoint?: string;
 }) => {
+    if (isStaticAsset(options.path)) return;
+
     const payload = {
         siteId: options.siteId,
         path: options.path,
