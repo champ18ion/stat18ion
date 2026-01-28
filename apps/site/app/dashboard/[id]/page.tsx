@@ -381,7 +381,7 @@ export const config = {
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.8]</div>
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.9]</div>
                             <button
                                 onClick={() => setShowCodeSetup(false)}
                                 className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
@@ -395,7 +395,7 @@ export const config = {
 
             <footer className="mt-20 pt-12 border-t border-cyan-500/10 opacity-20 flex justify-between text-[8px] uppercase tracking-[0.4em]">
                 <div>System Status: OPERATIONAL</div>
-                <div>Stat18ion Analytics v0.1.8</div>
+                <div>Stat18ion Analytics v0.1.9</div>
             </footer>
         </div>
     );
