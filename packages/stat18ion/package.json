@@ -1,6 +1,6 @@
 {
     "name": "stat18ion",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "description": "Privacy-first, lightweight analytics tracker for the modern web.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

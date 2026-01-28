@@ -48,6 +48,9 @@ const isStaticAsset = (path: string) => {
     );
 };
 
+let lastTrackedPath = '';
+let lastTrackedTime = 0;
+
 /**
  * Main function to track page views (Client-side)
  */
@@ -55,6 +58,13 @@ const trackPageView = () => {
     if (typeof window === 'undefined') return;
 
     const path = window.location.pathname;
+    const now = Date.now();
+
+    // Deduplicate: Don't track same path within 500ms
+    if (path === lastTrackedPath && now - lastTrackedTime < 500) {
+        return;
+    }
+
     if (isStaticAsset(path)) return;
 
     const isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
@@ -63,12 +73,15 @@ const trackPageView = () => {
         return;
     }
 
+    lastTrackedPath = path;
+    lastTrackedTime = now;
+
     const payload = {
         siteId: config.siteId,
         path: path,
         referrer: document.referrer,
         ua: navigator.userAgent,
-        ts: Date.now(),
+        ts: now,
     };
     log('Track PageView', payload);
     sendEvent(payload);
