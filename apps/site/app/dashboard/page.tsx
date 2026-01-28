@@ -178,9 +178,16 @@ export default function DashboardPage() {
 
                                 <div className="pt-4 border-t border-cyan-500/5">
                                     <p className="text-[9px] text-cyan-500/30 uppercase tracking-[0.3em] mb-1">SITE_ID</p>
-                                    <div className="font-mono text-[10px] text-cyan-500/60 bg-black/40 px-3 py-2 border border-cyan-500/5 group-hover:border-cyan-500/20 truncate transition-colors">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigator.clipboard.writeText(site.id);
+                                        }}
+                                        className="w-full font-mono text-[10px] text-cyan-500/60 bg-black/40 px-3 py-2 border border-cyan-500/5 group-hover:border-cyan-500/20 truncate transition-colors text-left hover:text-cyan-400 active:bg-cyan-500/10 cursor-alias"
+                                        title="Click to copy Site ID"
+                                    >
                                         {site.id}
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -216,9 +223,9 @@ export default function DashboardPage() {
             {/* Get Code Modal */}
             {selectedSiteForCode && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="w-full max-w-2xl bg-black border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(0,243,255,0.1)] p-8 relative">
-                        <div className="flex justify-between items-center mb-6 text-left">
-                            <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-widest">Setup: {selectedSiteForCode.name}</h2>
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-black border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(0,243,255,0.1)] p-8 relative scrollbar-hide">
+                        <div className="flex justify-between items-center mb-6 text-left sticky top-0 bg-black z-10 pb-4">
+                            <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-widest">Setup Instructions</h2>
                             <button
                                 onClick={() => setSelectedSiteForCode(null)}
                                 className="text-cyan-500/40 hover:text-red-500 transition-colors font-bold text-xs"
@@ -227,16 +234,47 @@ export default function DashboardPage() {
                             </button>
                         </div>
 
-                        <div className="space-y-6 text-left">
+                        <div className="space-y-8 text-left">
+                            {/* NPM Option */}
                             <div className="space-y-3">
-                                <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">Standard Script (Client-Side)</div>
-                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-xs text-cyan-100/80 break-all select-all">
-                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${selectedSiteForCode.id}"></script>`}
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">1. NPM Implementation (Modular)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-400 uppercase tracking-widest">Recommended</div>
                                 </div>
+                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center mb-2">
+                                    <span>npm install stat18ion</span>
+                                </div>
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                    {`import { init } from 'stat18ion';
+
+init({
+  siteId: '${selectedSiteForCode.id}', 
+  debug: false,
+  trackLocal: false
+});`}
+                                </pre>
                             </div>
 
+                            {/* Script tag */}
                             <div className="space-y-3">
-                                <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">Unblockable (Next.js Middleware)</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Static Script (Zero-Config)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">CDN</div>
+                                </div>
+                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all">
+                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${selectedSiteForCode.id}"></script>`}
+                                </div>
+                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
+                                    We use **unpkg** for global delivery. Best for static sites (HTML/Liquid) where NPM is not available.
+                                </p>
+                            </div>
+
+                            {/* Middleware */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Unblockable (Server-Side)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-green-500/60 uppercase tracking-widest font-bold">Stealth</div>
+                                </div>
                                 <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
                                     {`import { trackServerEvent } from 'stat18ion';
 
@@ -249,13 +287,13 @@ export function middleware(req) {
                             </div>
                         </div>
 
-                        <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">ST18_SDK_V0.1.3</div>
+                        <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.3]</div>
                             <button
                                 onClick={() => setSelectedSiteForCode(null)}
-                                className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all"
+                                className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
                             >
-                                Done
+                                System Ready
                             </button>
                         </div>
                     </div>

@@ -80,7 +80,13 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                             <h1 className="text-4xl font-black tracking-tighter glow-text uppercase">Site Analytics</h1>
                         </div>
                         <div className="flex items-center gap-4">
-                            <code className="text-[10px] text-cyan-500/60 bg-cyan-950/20 px-3 py-1 border border-cyan-500/10 uppercase tracking-widest">Site ID // {siteId}</code>
+                            <button
+                                onClick={() => navigator.clipboard.writeText(siteId as string)}
+                                className="text-[10px] text-cyan-500/60 bg-cyan-950/20 px-3 py-1 border border-cyan-500/10 uppercase tracking-widest hover:text-cyan-400 transition-colors cursor-alias"
+                                title="Click to copy Site ID"
+                            >
+                                Site ID // {siteId}
+                            </button>
                             <div className="flex items-center gap-1.5 px-3 py-1 border border-green-500/20 bg-green-500/5 text-green-500 font-bold text-[9px] uppercase tracking-widest">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Active Visitors: {stats.live_now}
                             </div>
@@ -279,7 +285,7 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
             {showCodeSetup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
                     <div className="w-full max-w-2xl bg-black border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(0,243,255,0.1)] p-8 relative">
-                        <div className="flex justify-between items-center mb-6 text-left">
+                        <div className="flex justify-between items-center mb-6 text-left sticky top-0 bg-black z-10 pb-4">
                             <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-widest">Setup Instructions</h2>
                             <button
                                 onClick={() => setShowCodeSetup(false)}
@@ -289,18 +295,47 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                             </button>
                         </div>
 
-                        <div className="space-y-6 text-left">
+                        <div className="space-y-8 text-left">
+                            {/* NPM Option */}
                             <div className="space-y-3">
-                                <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">1. Standard Implementation (Client-Side)</div>
-                                <div className="text-[10px] text-cyan-500/40 mb-2">ADD THIS SCRIPT TAG TO YOUR HEAD OR BEFORE THE CLOSING BODY TAG.</div>
-                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-xs text-cyan-100/80 break-all select-all">
-                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`}
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">1. NPM Implementation (Modular)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-400 uppercase tracking-widest">Recommended</div>
                                 </div>
+                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center mb-2">
+                                    <span>npm install stat18ion</span>
+                                </div>
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                    {`import { init } from 'stat18ion';
+
+init({
+  siteId: '${siteId}', 
+  debug: false,
+  trackLocal: false
+});`}
+                                </pre>
                             </div>
 
+                            {/* Script tag */}
                             <div className="space-y-3">
-                                <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Advanced Implementation (Next.js Middleware)</div>
-                                <div className="text-[10px] text-cyan-500/40 mb-2">RECOMMENDED FOR BYPASSING AD-BLOCKERS.</div>
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Static Script (Zero-Config)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">CDN</div>
+                                </div>
+                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all">
+                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`}
+                                </div>
+                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
+                                    We use **unpkg** for global delivery. Best for static sites (HTML/Liquid) where NPM is not available.
+                                </p>
+                            </div>
+
+                            {/* Middleware */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Unblockable (Server-Side)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-green-500/60 uppercase tracking-widest font-bold">Stealth</div>
+                                </div>
                                 <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
                                     {`import { trackServerEvent } from 'stat18ion';
 
@@ -313,13 +348,13 @@ export function middleware(req) {
                             </div>
                         </div>
 
-                        <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">PLATFORM_VERSION_0.1.3</div>
+                        <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.3]</div>
                             <button
                                 onClick={() => setShowCodeSetup(false)}
-                                className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all"
+                                className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
                             >
-                                I'M READY
+                                MISSION_READY
                             </button>
                         </div>
                     </div>

@@ -132,3 +132,14 @@ export const trackServerEvent = async (options: {
 export const Analytics = () => {
     return null;
 };
+
+// Auto-initialize if running in a browser and script tag has data-site-id
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    const script = document.currentScript || document.querySelector('script[data-site-id]');
+    if (script) {
+        const siteId = script.getAttribute('data-site-id');
+        if (siteId && !config.siteId) {
+            init({ siteId });
+        }
+    }
+}
