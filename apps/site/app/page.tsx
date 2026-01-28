@@ -32,11 +32,11 @@ export default function Home() {
         <section className="text-center space-y-8 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 border border-cyan-500/20 bg-cyan-950/20 font-mono text-[10px] uppercase tracking-widest text-cyan-400 mb-4 animate-in fade-in slide-in-from-bottom-2">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-            System Status: Operational [v0.1.2]
+            System Status: Operational [v0.1.3]
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-100 to-cyan-800 drop-shadow-sm leading-tight">
-            ANALYTICS<br />FOR MINIMALISTS
+            ANALYTICS<br />FOR THE MODERN WEB
           </h1>
 
           <p className="max-w-2xl mx-auto font-mono text-sm md:text-base text-cyan-200/60 leading-relaxed uppercase tracking-wide">
@@ -95,15 +95,28 @@ export default function Home() {
         {/* Framework Showcase */}
         <section id="frameworks" className="w-full mt-32 space-y-12">
           <div className="text-center space-y-2">
-            <h2 className="font-mono text-2xl font-bold tracking-widest uppercase text-cyan-100 italic">Compatible_Environments</h2>
+            <h2 className="font-mono text-2xl font-bold tracking-widest uppercase text-cyan-100 italic">Compatible Ecosystem</h2>
             <div className="w-24 h-px bg-cyan-500 mx-auto" />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {['Next.js', 'Nuxt', 'Astro', 'Remix', 'React', 'Vue', 'Svelte', 'Vanilla'].map((f) => (
-              <div key={f} className="terminal-border bg-cyan-950/10 p-4 flex flex-col items-center gap-3 group hover:border-cyan-400 transition-all duration-300">
-                <Terminal size={24} className="text-cyan-500/40 group-hover:text-cyan-400 transition-colors" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-500/60 group-hover:text-cyan-200">{f}</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {[
+              { name: 'Next.js', slug: 'nextdotjs' },
+              { name: 'Nuxt', slug: 'nuxtdotjs' },
+              { name: 'Astro', slug: 'astro' },
+              { name: 'Remix', slug: 'remix' },
+              { name: 'React', slug: 'react' },
+              { name: 'Vue', slug: 'vuedotjs' },
+              { name: 'Svelte', slug: 'svelte' },
+              { name: 'Node.js', slug: 'nodedotjs' }
+            ].map((f) => (
+              <div key={f.name} className="terminal-border bg-cyan-950/10 p-4 flex flex-col items-center gap-3 group hover:border-cyan-400 transition-all duration-300">
+                <img
+                  src={`https://cdn.simpleicons.org/${f.slug}/00f3ff`}
+                  alt={f.name}
+                  className="w-8 h-8 opacity-40 group-hover:opacity-100 transition-opacity"
+                />
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-cyan-500/60 group-hover:text-cyan-200">{f.name}</span>
               </div>
             ))}
           </div>
@@ -112,9 +125,9 @@ export default function Home() {
         {/* Features Grid */}
         <section id="features" className="w-full mt-40 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: <Zap />, title: "ZERO JS", desc: "Track events via server-side middleware. No impact on Core Web Vitals." },
-            { icon: <Shield />, title: "UNBLOCKABLE", desc: "Since requests originate from your server, ad-blockers can't touch them." },
-            { icon: <Cpu />, title: "ENRICHED DATA", desc: "Automatic Browser, OS, and Device detection with zero extra config." }
+            { icon: <Zap />, title: "Server-Side Tracking", desc: "Track events via edge middleware. Zero impact on browser performance." },
+            { icon: <Shield />, title: "Ad-Block Proof", desc: "Requests originate from your own server, making detection impossible." },
+            { icon: <Cpu />, title: "Auto Enrichment", desc: "Get Browser, OS, and Device telemetry without any extra client code." }
           ].map((feat, i) => (
             <div key={i} className="p-8 terminal-border bg-cyan-950/10 space-y-4 hover:bg-cyan-900/10 transition-colors group">
               <div className="text-cyan-500 group-hover:scale-110 transition-transform duration-500">{feat.icon}</div>
@@ -126,11 +139,11 @@ export default function Home() {
       </main>
 
       <footer className="w-full max-w-7xl px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-cyan-500/10 mt-20 opacity-50 font-mono text-[10px] uppercase tracking-[0.3em]">
-        <p>© 2026 STAT18ION CORE // ALL RIGHTS RESERVED</p>
+        <p>© 2026 STAT18ION CORE // BUILT FOR SCALE</p>
         <div className="flex gap-8">
-          <a href="#" className="hover:text-cyan-400 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-cyan-400 transition-colors">Terms</a>
-          <a href="#" className="hover:text-cyan-400 transition-colors">Github</a>
+          <Link href="#" className="hover:text-cyan-400 transition-colors">Documentation</Link>
+          <Link href="#" className="hover:text-cyan-400 transition-colors">Platform Status</Link>
+          <a href="https://github.com/champ18ion/stat18ion" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors">Source_Code</a>
         </div>
       </footer>
     </div>

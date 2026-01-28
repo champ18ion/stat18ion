@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, ArrowRight, LayoutGrid, Activity, ShieldCheck, Search, Terminal } from 'lucide-react';
+import { Plus, ArrowRight, LayoutGrid, Activity, ShieldCheck, Search, Terminal, Globe } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -11,8 +11,10 @@ export default function DashboardPage() {
     const router = useRouter();
     const [sites, setSites] = useState<any[]>([]);
     const [newSiteName, setNewSiteName] = useState('');
+    const [newSiteDomain, setNewSiteDomain] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedSiteForCode, setSelectedSiteForCode] = useState<any>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('stat18ion_token');
@@ -42,13 +44,17 @@ export default function DashboardPage() {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ name: newSiteName }),
+            body: JSON.stringify({
+                name: newSiteName,
+                domain: newSiteDomain
+            }),
         });
 
         if (res.ok) {
             const site = await res.json();
             setSites([site, ...sites]);
             setNewSiteName('');
+            setNewSiteDomain('');
             setIsCreating(false);
         }
     };
@@ -63,9 +69,9 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 pb-6 border-b border-cyan-500/10">
                 <div>
                     <div className="flex items-center gap-2 text-cyan-500/40 text-[10px] uppercase tracking-[0.3em] mb-1">
-                        <Activity size={10} className="animate-pulse" /> {/* // Cluster_Active_Node // */}
+                        <Activity size={10} className="animate-pulse" /> {/* Active Node */}
                     </div>
-                    <h1 className="text-4xl font-black tracking-tighter glow-text uppercase">Matrix_Overview</h1>
+                    <h1 className="text-4xl font-black tracking-tighter glow-text uppercase">Project Dashboard</h1>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
@@ -73,7 +79,7 @@ export default function DashboardPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-500/40" size={14} />
                         <input
                             type="text"
-                            placeholder="SEARCH_NODES..."
+                            placeholder="Filter sites..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-cyan-950/20 border border-cyan-500/20 px-10 py-2.5 text-xs text-cyan-100 placeholder:text-cyan-500/20 focus:outline-none focus:border-cyan-400/50 transition-colors"
@@ -83,12 +89,12 @@ export default function DashboardPage() {
                         onClick={() => setIsCreating(!isCreating)}
                         className="flex items-center gap-3 px-6 py-2.5 bg-cyan-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all active:scale-95"
                     >
-                        <Plus size={16} strokeWidth={3} /> Initialize_Node
+                        <Plus size={16} strokeWidth={3} /> Register Site
                     </button>
                     <button
                         onClick={() => { localStorage.removeItem('stat18ion_token'); router.push('/login'); }}
                         className="p-2.5 border border-red-500/20 text-red-500/60 hover:bg-red-500/10 transition-colors"
-                        title="TERMINATE_SESSION"
+                        title="Logout"
                     >
                         <ShieldCheck size={18} />
                     </button>
@@ -99,14 +105,14 @@ export default function DashboardPage() {
             {isCreating && (
                 <div className="mb-12 terminal-border bg-cyan-950/20 p-8 max-w-2xl animate-in zoom-in-95 duration-300">
                     <div className="flex items-center gap-2 mb-6 text-cyan-400 text-xs uppercase tracking-widest font-bold">
-                        <Terminal size={14} /> Node_Configuration_Wizard
+                        <Terminal size={14} /> Register New Site
                     </div>
                     <form onSubmit={handleCreateSite} className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] text-cyan-500/60 uppercase tracking-widest">Entry://Name</label>
+                            <label className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">Site Name</label>
                             <input
                                 type="text"
-                                placeholder="E.G. PROJECT_ALFA"
+                                placeholder="e.g. My Portfolio"
                                 value={newSiteName}
                                 onChange={(e) => setNewSiteName(e.target.value)}
                                 className="w-full bg-black/40 border border-cyan-500/20 p-3 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 transition-colors"
@@ -114,40 +120,50 @@ export default function DashboardPage() {
                                 autoFocus
                             />
                         </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">Domain (Optional)</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. myportfolio.com"
+                                value={newSiteDomain}
+                                onChange={(e) => setNewSiteDomain(e.target.value)}
+                                className="w-full bg-black/40 border border-cyan-500/20 p-3 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 transition-colors"
+                            />
+                        </div>
                         <div className="flex gap-4 pt-2">
                             <button type="submit" className="flex-1 py-3 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-bold text-xs uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-all">
-                                CREATE_IDENTITY
+                                Register Site
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsCreating(false)}
                                 className="px-6 py-3 border border-red-500/20 text-red-500/60 hover:bg-red-500/10 text-xs uppercase tracking-widest font-bold"
                             >
-                                ABORT
+                                Cancel
                             </button>
                         </div>
                     </form>
                 </div>
             )}
 
-            {/* Grid */}
+            {/* Site Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredSites.map((site) => (
-                    <Link href={`/dashboard/${site.id}`} key={site.id} className="group">
-                        <div className="p-8 terminal-border bg-cyan-950/5 hover:bg-cyan-500/[0.03] hover:border-cyan-400/50 transition-all duration-500 relative overflow-hidden h-full">
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-cyan-500/[0.02] -rotate-45 translate-x-8 -translate-y-8" />
-
+                    <div key={site.id} className="terminal-border bg-cyan-950/5 hover:bg-cyan-500/[0.03] hover:border-cyan-400/50 transition-all duration-500 relative overflow-hidden h-full flex flex-col group">
+                        <div className="p-8 flex-1">
                             <div className="flex justify-between items-start mb-8">
                                 <div className="space-y-1">
-                                    <h3 className="text-xl font-black text-cyan-100 group-hover:text-cyan-400 transition-colors uppercase tracking-tighter">
-                                        {site.name}
-                                    </h3>
-                                    <p className="text-[10px] text-cyan-500/40 uppercase tracking-[0.2em]">
-                                        {site.domain || 'LINK_RESERVED'}
-                                    </p>
+                                    <Link href={`/dashboard/${site.id}`} className="group/title">
+                                        <h3 className="text-xl font-bold text-cyan-100 group-hover/title:text-cyan-400 transition-colors uppercase tracking-tight">
+                                            {site.name}
+                                        </h3>
+                                    </Link>
+                                    <div className="flex items-center gap-2 text-cyan-500/40 text-[10px] uppercase tracking-[0.2em] font-bold">
+                                        <Globe size={11} /> {site.domain || 'NO_DOMAIN_LINKED'}
+                                    </div>
                                 </div>
                                 <div className="p-2 border border-cyan-500/10 group-hover:border-cyan-400/30 transition-colors">
-                                    <ArrowRight className="text-cyan-500/40 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" size={16} />
+                                    <LayoutGrid size={20} className="text-cyan-500/40 group-hover:text-cyan-400 transition-all" />
                                 </div>
                             </div>
 
@@ -161,25 +177,90 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="pt-4 border-t border-cyan-500/5">
-                                    <p className="text-[9px] text-cyan-500/30 uppercase tracking-[0.3em] mb-1">NODE_ID</p>
+                                    <p className="text-[9px] text-cyan-500/30 uppercase tracking-[0.3em] mb-1">SITE_ID</p>
                                     <div className="font-mono text-[10px] text-cyan-500/60 bg-black/40 px-3 py-2 border border-cyan-500/5 group-hover:border-cyan-500/20 truncate transition-colors">
                                         {site.id}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </Link>
+
+                        <div className="p-4 bg-cyan-500/5 border-t border-cyan-500/10 flex gap-2">
+                            <Link
+                                href={`/dashboard/${site.id}`}
+                                className="flex-1 py-1.5 text-center text-[10px] font-bold uppercase tracking-widest border border-cyan-500/20 hover:bg-cyan-500 hover:text-black transition-all"
+                            >
+                                View Analytics
+                            </Link>
+                            <button
+                                onClick={() => setSelectedSiteForCode(site)}
+                                className="px-4 py-1.5 border border-cyan-500/20 hover:border-cyan-500/50 text-cyan-400 transition-all"
+                                title="Get Tracking Code"
+                            >
+                                <Terminal size={14} />
+                            </button>
+                        </div>
+                    </div>
                 ))}
 
                 {filteredSites.length === 0 && (
                     <div className="col-span-full py-32 border border-dashed border-cyan-500/10 flex flex-col items-center justify-center opacity-30 text-center animate-pulse">
                         <LayoutGrid size={48} className="mb-4 text-cyan-500" />
                         <p className="font-mono text-xs uppercase tracking-widest">
-                            {searchQuery ? 'NO_MATCHING_NODES_FOUND' : 'CLUSTER_EMPTY_AWAITING_INITIALIZATION'}
+                            {searchQuery ? 'NO_MATCHING_PROJECTS_FOUND' : 'NO_SITES_REGISTERED_YET'}
                         </p>
                     </div>
                 )}
             </div>
+
+            {/* Get Code Modal */}
+            {selectedSiteForCode && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-2xl bg-black border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(0,243,255,0.1)] p-8 relative">
+                        <div className="flex justify-between items-center mb-6 text-left">
+                            <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-widest">Setup: {selectedSiteForCode.name}</h2>
+                            <button
+                                onClick={() => setSelectedSiteForCode(null)}
+                                className="text-cyan-500/40 hover:text-red-500 transition-colors font-bold text-xs"
+                            >
+                                [ CLOSE ]
+                            </button>
+                        </div>
+
+                        <div className="space-y-6 text-left">
+                            <div className="space-y-3">
+                                <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">Standard Script (Client-Side)</div>
+                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-xs text-cyan-100/80 break-all select-all">
+                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${selectedSiteForCode.id}"></script>`}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">Unblockable (Next.js Middleware)</div>
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                    {`import { trackServerEvent } from 'stat18ion';
+
+export function middleware(req) {
+  trackServerEvent(req, { 
+    siteId: '${selectedSiteForCode.id}' 
+  });
+}`}
+                                </pre>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center">
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">ST18_SDK_V0.1.3</div>
+                            <button
+                                onClick={() => setSelectedSiteForCode(null)}
+                                className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
