@@ -188,6 +188,24 @@ app.get('/api/sites', authenticate, async (req: any, res) => {
     }
 });
 
+app.delete('/api/sites/:id', authenticate, async (req: any, res) => {
+    try {
+        const { id } = req.params;
+        // Verify ownership
+        const siteCheck = await pool.query('SELECT id FROM sites WHERE id = $1 AND user_id = $2', [id, req.userId]);
+        if (siteCheck.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+
+        // Delete events first (or rely on CASCADE if configured, but let's be explicit if not sure)
+        await pool.query('DELETE FROM events WHERE site_id = $1', [id]);
+        await pool.query('DELETE FROM sites WHERE id = $1', [id]);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to delete site' });
+    }
+});
+
 // --- INGESTION ---
 
 app.post('/api/event', async (req, res) => {

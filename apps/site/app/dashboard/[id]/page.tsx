@@ -21,6 +21,37 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showCodeSetup, setShowCodeSetup] = useState(false);
+    const [selectedTab, setSelectedTab] = useState('next-opt');
+    const [copyStatus, setCopyStatus] = useState<string | null>(null);
+
+    const handleCopy = (text: string, id: string) => {
+        navigator.clipboard.writeText(text);
+        setCopyStatus(id);
+        setTimeout(() => setCopyStatus(null), 2000);
+    };
+
+    const handleDeleteSite = async () => {
+        if (!confirm('Are you absolutely sure? This will delete all collected data for this site permanently.')) return;
+
+        const token = localStorage.getItem('stat18ion_token');
+        const res = await fetch(`${API_URL}/api/sites/${siteId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+            router.push('/dashboard');
+        }
+    };
+
+    const CopyButton = ({ text, id }: { text: string, id: string }) => (
+        <button
+            onClick={() => handleCopy(text, id)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 text-[9px] text-cyan-400 uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-all font-bold"
+        >
+            {copyStatus === id ? 'COPIED!' : 'COPY_CODE'}
+        </button>
+    );
 
     const resolvedParams = use(params);
     const siteId = resolvedParams.id;
@@ -81,11 +112,11 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                         </div>
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={() => navigator.clipboard.writeText(siteId as string)}
+                                onClick={() => handleCopy(siteId, 'site-id')}
                                 className="text-[10px] text-cyan-500/60 bg-cyan-950/20 px-3 py-1 border border-cyan-500/10 uppercase tracking-widest hover:text-cyan-400 transition-colors cursor-alias"
                                 title="Click to copy Site ID"
                             >
-                                Site ID // {siteId}
+                                {copyStatus === 'site-id' ? 'COPIED_TO_CLIPBOARD' : `Site ID // ${siteId}`}
                             </button>
                             <div className="flex items-center gap-1.5 px-3 py-1 border border-green-500/20 bg-green-500/5 text-green-500 font-bold text-[9px] uppercase tracking-widest">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Active Visitors: {stats.live_now}
@@ -93,7 +124,14 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                         </div>
                     </div>
 
-                    <div className="flex gap-4 w-full lg:w-auto">
+                    <div className="flex flex-wrap gap-4 w-full lg:w-auto">
+                        <button
+                            onClick={handleDeleteSite}
+                            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2 border border-red-500/20 text-red-500/60 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 text-xs uppercase tracking-widest transition-all"
+                            title="Delete this site and all data"
+                        >
+                            <Cpu size={14} className="text-red-500/50" /> Delete Site
+                        </button>
                         <button
                             onClick={() => {
                                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats, null, 2));
@@ -109,7 +147,10 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                             <Download size={14} /> Export Data
                         </button>
                         <button
-                            onClick={() => setShowCodeSetup(true)}
+                            onClick={() => {
+                                setShowCodeSetup(true);
+                                setSelectedTab('next-opt');
+                            }}
                             className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-cyan-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
                         >
                             <Terminal size={14} /> Setup Guide
@@ -284,33 +325,87 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
             {/* Setup Guide Modal */}
             {showCodeSetup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="w-full max-w-2xl bg-black border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(0,243,255,0.1)] p-8 relative">
-                        <div className="flex justify-between items-center mb-6 text-left sticky top-0 bg-black z-10 pb-4">
-                            <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-widest">Setup Instructions</h2>
-                            <button
-                                onClick={() => setShowCodeSetup(false)}
-                                className="text-cyan-500/40 hover:text-red-500 transition-colors font-bold text-xs"
-                            >
-                                [ CLOSE ]
-                            </button>
+                    <div className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-black border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(0,243,255,0.1)] relative">
+                        {/* Header */}
+                        <div className="p-8 pb-4 border-b border-cyan-500/10">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-widest flex items-center gap-3 font-mono">
+                                    <Terminal className="text-cyan-400" size={20} /> Setup Instructions
+                                </h2>
+                                <button
+                                    onClick={() => setShowCodeSetup(false)}
+                                    className="text-cyan-500/40 hover:text-red-500 transition-colors font-bold text-xs"
+                                >
+                                    [ CLOSE ]
+                                </button>
+                            </div>
+
+                            {/* Tabs */}
+                            <div className="flex flex-wrap gap-2">
+                                {[
+                                    { id: 'next-opt', label: 'NEXT_JS (OPT)' },
+                                    { id: 'next-simple', label: 'NEXT_JS (SIMPLE)' },
+                                    { id: 'react', label: 'REACT / VITE' },
+                                    { id: 'stealth', label: 'STEALTH_MODE' },
+                                    { id: 'script', label: 'CDN_SCRIPT' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setSelectedTab(tab.id)}
+                                        className={`px-4 py-2 text-[9px] font-bold uppercase tracking-widest border transition-all font-mono ${selectedTab === tab.id
+                                                ? 'bg-cyan-500 text-black border-cyan-500'
+                                                : 'border-cyan-500/20 text-cyan-500/40 hover:border-cyan-500/40 hover:text-cyan-300'
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="mb-6 p-3 border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-500/60 uppercase tracking-wider leading-relaxed">
-                            <span className="font-bold text-amber-500">[ WARNING ]</span> Avoid using both Middleware and Script tags simultaneously to prevent double-counting of visits. Choose one implementation method for optimal accuracy.
-                        </div>
+                        {/* Content */}
+                        <div className="p-8 overflow-y-auto flex-1 scrollbar-hide">
+                            <div className="mb-6 p-3 border border-amber-500/20 bg-amber-500/5 text-[10px] text-amber-500/60 uppercase tracking-wider leading-relaxed font-mono">
+                                <span className="font-bold text-amber-500">[ WARNING ]</span> Avoid using both Middleware and Script tags simultaneously to prevent double-counting.
+                            </div>
 
-                        <div className="space-y-8 text-left">
-                            {/* 1. Next.js Optimized */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">1. Next.js (Optimized Provider)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-blue-400 uppercase tracking-widest font-bold">Best Practice</div>
-                                </div>
-                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
-                                    Keep your `layout.tsx` as a Server Component by using a dedicated client provider.
-                                </p>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[300px] select-all scrollbar-thin">
-                                    {`// components/Stat18ion.tsx
+                            <div className="space-y-6">
+                                {selectedTab === 'next-opt' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed font-mono">
+                                                Keep your `layout.tsx` as a Server Component.
+                                            </p>
+                                            <CopyButton
+                                                id="code-next-opt"
+                                                text={`// components/Stat18ion.tsx
+'use client';
+import { useEffect } from 'react';
+import { init } from 'stat18ion';
+
+export function Stat18ion() {
+  useEffect(() => {
+    init({ siteId: '${siteId}' });
+  }, []);
+  return null;
+}
+
+// app/layout.tsx
+import { Stat18ion } from './components/Stat18ion';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Stat18ion />
+        {children}
+      </body>
+    </html>
+  );
+}`} />
+                                        </div>
+                                        <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                            {`// components/Stat18ion.tsx
 'use client';
 import { useEffect } from 'react';
 import { init } from 'stat18ion';
@@ -335,21 +430,36 @@ export default function RootLayout({ children }) {
     </html>
   );
 }`}
-                                </pre>
-                            </div>
+                                        </pre>
+                                    </div>
+                                )}
 
-                            {/* 2. Next.js Simple */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Next.js (Simple Client Layout)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">Plug n Play</div>
-                                </div>
-                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
-                                    Quickest integration if you don't mind a Client Component layout.
-                                </p>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[250px] select-all scrollbar-thin">
-                                    {`// app/layout.tsx
-'use client';
+                                {selectedTab === 'next-simple' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed font-mono">
+                                                Quick integration (Client Component layout).
+                                            </p>
+                                            <CopyButton
+                                                id="code-next-simple"
+                                                text={`'use client';
+import { useEffect } from 'react';
+import { init } from 'stat18ion';
+
+export default function RootLayout({ children }) {
+  useEffect(() => {
+    init({ siteId: '${siteId}' });
+  }, []);
+
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}`} />
+                                        </div>
+                                        <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                            {`'use client';
 import { useEffect } from 'react';
 import { init } from 'stat18ion';
 
@@ -364,47 +474,51 @@ export default function RootLayout({ children }) {
     </html>
   );
 }`}
-                                </pre>
-                            </div>
+                                        </pre>
+                                    </div>
+                                )}
 
-                            {/* 3. Basic Vanilla React / Vite */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Vanilla React / Vite / SPA</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-400 uppercase tracking-widest">Universal</div>
-                                </div>
-                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
-                                    Standard implementation for any SPA framework (React, Vue, Svelte, or Vanilla).
-                                </p>
-                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center mb-2">
-                                    <span>npm install stat18ion</span>
-                                </div>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[150px] select-all scrollbar-thin">
-                                    {`// App.js or main.js
+                                {selectedTab === 'react' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed font-mono">
+                                                Standard SPA integration (React, Vue, Svelte).
+                                            </p>
+                                            <CopyButton
+                                                id="code-react"
+                                                text={`// App.js or main.js
 import { init } from 'stat18ion';
 
-init({ 
+init({
+  siteId: '${siteId}',
+  debug: false
+});`} />
+                                        </div>
+                                        <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                            {`// App.js or main.js
+import { init } from 'stat18ion';
+
+init({
   siteId: '${siteId}',
   debug: false
 });`}
-                                </pre>
-                            </div>
+                                        </pre>
+                                    </div>
+                                )}
 
-                            {/* 4. Middleware */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">4. Stealth Mode (Middleware)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-green-500/60 uppercase tracking-widest font-bold underline">100% Unblockable</div>
-                                </div>
-                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed">
-                                    Pure server-side tracking via Edge Runtime. Zero client-side footprint.
-                                </p>
-                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto overflow-y-auto max-h-[300px] select-all scrollbar-thin">
-                                    {`// middleware.ts
+                                {selectedTab === 'stealth' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed font-mono">
+                                                Pure server-side tracking via Edge Runtime.
+                                            </p>
+                                            <CopyButton
+                                                id="code-stealth"
+                                                text={`// middleware.ts
 import { trackServerEvent } from 'stat18ion';
 
 export function middleware(req) {
-  trackServerEvent({
+  trackServerEvent({ 
     siteId: '${siteId}',
     path: req.nextUrl.pathname,
     ua: req.headers.get('user-agent'),
@@ -412,50 +526,69 @@ export function middleware(req) {
 }
 
 export const config = {
-  // Filters out images, chunks, and system files at the edge level
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\\\..*).*)'],
+};`} />
+                                        </div>
+                                        <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                            {`// middleware.ts
+import { trackServerEvent } from 'stat18ion';
+
+export function middleware(req) {
+  trackServerEvent({ 
+    siteId: '${siteId}',
+    path: req.nextUrl.pathname,
+    ua: req.headers.get('user-agent'),
+  });
+}
+
+export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\\\..*).*)'],
 };`}
-                                </pre>
-                            </div>
-
-                            {/* 5. Script tag */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">5. Static Script (Zero-Config)</div>
-                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">CDN</div>
-                                </div>
-                                <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center">
-                                    {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`}
-                                </div>
-                            </div>
-
-                            {/* Configuration Parameters */}
-                            <div className="p-4 border border-cyan-500/10 bg-cyan-950/20 rounded-sm">
-                                <h3 className="text-[10px] text-cyan-400 uppercase tracking-widest font-bold mb-3">Configuration Reference</h3>
-                                <div className="grid grid-cols-1 gap-3 text-[9px] uppercase tracking-tighter text-cyan-100/60">
-                                    <div className="flex justify-between border-b border-cyan-500/5 pb-1">
-                                        <span className="text-cyan-500">siteId (Required)</span>
-                                        <span>Your unique node identifier</span>
+                                        </pre>
                                     </div>
-                                    <div className="flex justify-between border-b border-cyan-500/5 pb-1">
-                                        <span className="text-cyan-500">endpoint (Optional)</span>
-                                        <span>Custom ingestion path (defaults to production)</span>
+                                )}
+
+                                {selectedTab === 'script' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest leading-relaxed font-mono">
+                                                Zero-config CDN script for basic sites.
+                                            </p>
+                                            <CopyButton
+                                                id="code-script"
+                                                text={`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`} />
+                                        </div>
+                                        <div className="bg-cyan-950/20 border border-cyan-500/10 p-6 font-mono text-[11px] text-cyan-100/80 break-all select-all flex justify-between items-center text-left">
+                                            {`<script defer src="https://unpkg.com/stat18ion@latest/dist/index.js" data-site-id="${siteId}"></script>`}
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between border-b border-cyan-500/5 pb-1">
-                                        <span className="text-cyan-500">debug (Optional)</span>
-                                        <span>Enable logs in console to verify events</span>
+                                )}
+
+                                {/* Configuration Parameters */}
+                                <div className="p-4 border border-cyan-500/10 bg-cyan-950/20 rounded-sm mt-8">
+                                    <h3 className="text-[10px] text-cyan-400 uppercase tracking-widest font-bold mb-3 font-mono">Configuration Reference</h3>
+                                    <div className="grid grid-cols-1 gap-3 text-[9px] uppercase tracking-tighter text-cyan-100/60 font-mono">
+                                        <div className="flex justify-between border-b border-cyan-500/5 pb-1">
+                                            <span className="text-cyan-500">siteId [REQUIRED]</span>
+                                            <span>Your unique node identifier</span>
+                                        </div>
+                                        <div className="flex justify-between border-b border-cyan-500/5 pb-1">
+                                            <span className="text-cyan-500">debug [OPTIONAL]</span>
+                                            <span>Enable console logs for verification</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.10]</div>
+                        {/* Footer */}
+                        <div className="p-8 pt-4 border-t border-cyan-500/10 flex justify-between items-center bg-black/50">
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em] font-bold select-none font-mono">SDK_BUNDLE_READY [v0.1.10]</div>
                             <button
                                 onClick={() => setShowCodeSetup(false)}
-                                className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
+                                className="px-8 py-2.5 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono shadow-[0_0_20px_rgba(0,243,255,0.2)]"
                             >
-                                MISSION_READY
+                                CLOSE_INTERFACE
                             </button>
                         </div>
                     </div>
