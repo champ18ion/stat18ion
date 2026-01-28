@@ -9,44 +9,73 @@ Privacy-first, lightweight (< 1KB), and cookie-free analytics.
 npm install stat18ion
 ```
 
-## Usage
+## Setup Guides
 
-### 1. Unblockable (Server-Side) — **Recommended**
-This is immune to ad-blockers and requires zero client-side JavaScript. Best for Next.js, Nuxt, or any server-side framework.
+### 1. Next.js App Router (Recommended)
+Create a client-side provider component and drop it in your `layout.tsx`. This avoids SSR issues and makes setup "Plug n Play".
 
-```typescript
-// middleware.ts (Next.js Example)
-import { NextResponse } from 'next/server';
-import { trackServerEvent } from 'stat18ion';
+```tsx
+// Stat18ionProvider.tsx
+'use client'
 
-export async function middleware(req) {
-  // Track the event without blocking the visitor
-  trackServerEvent({
-    siteId: 'YOUR_SITE_ID',
-    path: req.nextUrl.pathname,
-    ua: req.headers.get('user-agent') || '',
-    referrer: req.headers.get('referer') || '',
-  });
+import { useEffect } from 'react'
+import { init } from 'stat18ion'
 
-  return NextResponse.next();
+export function Stat18ionProvider() {
+  useEffect(() => {
+    init({ siteId: 'YOUR_SITE_ID' })
+  }, [])
+  return null
 }
 ```
 
-### 2. Standard (Client-Side)
-Initialize once in your application root.
+```tsx
+// app/layout.tsx
+import { Stat18ionProvider } from './Stat18ionProvider'
 
-```javascript
-import { init } from 'stat18ion';
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Stat18ionProvider />
+        {children}
+      </body>
+    </html>
+  )
+}
+```
 
-init({
-  siteId: 'YOUR_SITE_ID', 
-  debug: false,
-  trackLocal: false
-});
+### 2. Unblockable (Middleware)
+Zero client-side JS. Resistant to ad-blockers. Use a tight `matcher` to avoid tracking static assets or internal chunks.
+
+```typescript
+// middleware.ts
+import { trackServerEvent } from 'stat18ion';
+
+export function middleware(req) {
+  trackServerEvent({ 
+    siteId: 'YOUR_SITE_ID',
+    path: req.nextUrl.pathname,
+    ua: req.headers.get('user-agent'),
+  });
+}
+
+export const config = {
+  // Filters out images, chunks, and system files at the edge level
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)'],
+};
+```
+
+### 3. Basic Script (HTML)
+```html
+<script defer 
+  src="https://unpkg.com/stat18ion@latest/dist/index.js" 
+  data-site-id="YOUR_SITE_ID">
+</script>
 ```
 
 ## Features
-- 🚀 **Lightweight**: Zero dependencies, tiny bundle.
-- 🕵️ **Privacy Friendly**: No IP storage, no cookies.
-- ⚡ **Auto Tracking**: Automatically tracks route changes in SPAs (Next.js, React Router).
-- 🛡️ **Dev Safety**: Automatically ignores `localhost` traffic unless `debug: true` is set.
+- 🚀 **Aggressive Filtering**: Automatically ignores `.js`, `.css`, `.webp`, `.avif`, and other media noise.
+- ⚡ **SPA Deduplication**: Built-in 1000ms cooldown to prevent duplicate events during hydration.
+- 🕵️ **Privacy Friendly**: No IP storage, no cookies, 10-second backend cooldown.
+- ⚡ **Auto Tracking**: Automatically tracks route changes in SPAs.

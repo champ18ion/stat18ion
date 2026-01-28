@@ -206,6 +206,17 @@ app.post('/api/event', async (req, res) => {
         // Hash IP + UA for privacy-friendly unique visitor tracking
         const visitorHash = Buffer.from(`${ip}-${data.ua}-${new Date().toISOString().slice(0, 10)}`).toString('base64');
 
+        // SERVER-SIDE DEDUPLICATION
+        // Check if any event from this visitor on this path was recorded in the last 10 seconds
+        const duplicateCheck = await pool.query(
+            'SELECT id FROM events WHERE site_id = $1 AND visitor_hash = $2 AND path = $3 AND created_at > NOW() - INTERVAL \'10 seconds\' LIMIT 1',
+            [data.siteId, visitorHash, data.path]
+        );
+
+        if (duplicateCheck.rows.length > 0) {
+            return res.status(202).json({ status: 'ignored', reason: 'duplicate' });
+        }
+
         const query = `
       INSERT INTO events (site_id, path, referrer, device_type, browser, os, device, country, visitor_hash, created_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, to_timestamp($10 / 1000.0))

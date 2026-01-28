@@ -313,17 +313,38 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
                                     {`import { init } from 'stat18ion';
 
 init({
-  siteId: '${siteId}', 
-  debug: false,
-  trackLocal: false
+  siteId: '${siteId}',
+  debug: false
 });`}
+                                </pre>
+                            </div>
+
+                            {/* Next.js Provider */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Next.js App Router (Plug n Play)</div>
+                                    <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-blue-400 uppercase tracking-widest">Recommended</div>
+                                </div>
+                                <p className="text-[9px] text-cyan-500/40 uppercase tracking-widest">Create a component and drop it in your `layout.tsx` (Server Component safe):</p>
+                                <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
+                                    {`'use client'
+
+import { useEffect } from 'react'
+import { init } from 'stat18ion'
+
+export function Stat18ionProvider() {
+  useEffect(() => {
+    init({ siteId: '${siteId}' })
+  }, [])
+  return null
+}`}
                                 </pre>
                             </div>
 
                             {/* Script tag */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">2. Static Script (Zero-Config)</div>
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Static Script (Zero-Config)</div>
                                     <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-cyan-500/40 uppercase tracking-widest">CDN</div>
                                 </div>
                                 <div className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[11px] text-cyan-100/80 break-all select-all">
@@ -337,14 +358,14 @@ init({
                             {/* Middleware */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">3. Unblockable (Server-Side)</div>
+                                    <div className="text-[10px] text-cyan-500/60 uppercase tracking-widest font-bold">4. Unblockable (Server-Side)</div>
                                     <div className="px-2 py-0.5 border border-cyan-500/20 text-[8px] text-green-500/60 uppercase tracking-widest font-bold">Stealth</div>
                                 </div>
                                 <pre className="bg-cyan-950/20 border border-cyan-500/10 p-4 font-mono text-[10px] text-cyan-100/80 overflow-x-auto select-all">
                                     {`import { trackServerEvent } from 'stat18ion';
 
 export function middleware(req) {
-  trackServerEvent({ 
+  trackServerEvent({
     siteId: '${siteId}',
     path: req.nextUrl.pathname,
     ua: req.headers.get('user-agent'),
@@ -352,14 +373,15 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // Aggressive filtering for static chunks, images, and system files
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\\\..*).*)'],
 };`}
                                 </pre>
                             </div>
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-cyan-500/10 flex justify-between items-center sticky bottom-0 bg-black py-4">
-                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.6]</div>
+                            <div className="text-[9px] text-cyan-500/30 uppercase tracking-[0.2em]">SDK_BUNDLE_READY [v0.1.8]</div>
                             <button
                                 onClick={() => setShowCodeSetup(false)}
                                 className="px-6 py-2 bg-cyan-500 text-black font-bold text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all font-mono"
@@ -373,7 +395,7 @@ export const config = {
 
             <footer className="mt-20 pt-12 border-t border-cyan-500/10 opacity-20 flex justify-between text-[8px] uppercase tracking-[0.4em]">
                 <div>System Status: OPERATIONAL</div>
-                <div>Stat18ion Analytics v0.1.6</div>
+                <div>Stat18ion Analytics v0.1.8</div>
             </footer>
         </div>
     );

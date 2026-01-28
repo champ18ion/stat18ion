@@ -39,12 +39,18 @@ const sendEvent = (payload: any) => {
 
 const isStaticAsset = (path: string) => {
     const staticExtensions = [
-        '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.otf', '.json', '.map'
+        '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.otf', '.json', '.map', '.txt', '.xml', '.webp', '.avif', '.mp4', '.webm'
     ];
+    // Clean path (remove query params and hashes)
+    const cleanPath = path.split('?')[0].split('#')[0].toLowerCase();
+
     return (
-        staticExtensions.some(ext => path.toLowerCase().endsWith(ext)) ||
-        path.includes('/_next/static/') ||
-        path.includes('/api/')
+        staticExtensions.some(ext => cleanPath.endsWith(ext)) ||
+        cleanPath.includes('/_next/static/') ||
+        cleanPath.includes('/_next/image/') ||
+        cleanPath.includes('/api/') ||
+        cleanPath === '/favicon.ico' ||
+        cleanPath === '/robots.txt'
     );
 };
 
@@ -60,8 +66,8 @@ const trackPageView = () => {
     const path = window.location.pathname;
     const now = Date.now();
 
-    // Deduplicate: Don't track same path within 500ms
-    if (path === lastTrackedPath && now - lastTrackedTime < 500) {
+    // Deduplicate: Don't track same path within 1000ms
+    if (path === lastTrackedPath && now - lastTrackedTime < 1000) {
         return;
     }
 
