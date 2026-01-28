@@ -11,59 +11,38 @@ npm install stat18ion
 
 ## Usage
 
-Initialize the tracker once in your application root (e.g., `layout.tsx` or `App.js`).
+### 1. Unblockable (Server-Side) — **Recommended**
+This is immune to ad-blockers and requires zero client-side JavaScript. Best for Next.js, Nuxt, or any server-side framework.
+
+```typescript
+// middleware.ts (Next.js Example)
+import { NextResponse } from 'next/server';
+import { trackServerEvent } from 'stat18ion';
+
+export async function middleware(req) {
+  // Track the event without blocking the visitor
+  trackServerEvent({
+    siteId: 'YOUR_SITE_ID',
+    path: req.nextUrl.pathname,
+    ua: req.headers.get('user-agent') || '',
+    referrer: req.headers.get('referer') || '',
+  });
+
+  return NextResponse.next();
+}
+```
+
+### 2. Standard (Client-Side)
+Initialize once in your application root.
 
 ```javascript
 import { init } from 'stat18ion';
 
 init({
   siteId: 'YOUR_SITE_ID', 
-  debug: false,      // Set to true to see logs in console
-  trackLocal: false  // Set to true to send data from localhost/dev
+  debug: false,
+  trackLocal: false
 });
-```
-
-### Configuration Options
-| Option | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `siteId` | `string` | Required | Your unique Site UUID from the dashboard. |
-| `endpoint` | `string` | SaaS URL | Your backend event endpoint. |
-| `debug` | `boolean` | `false` | Enable console logging for events. |
-| `trackLocal` | `boolean` | `false` | If false, data is never sent from `localhost`. |
-
-### Next.js Integration
-
-To keep your layout as a **Server Component** (for Metadata/SEO), create a small client-side component:
-
-```tsx
-// components/StatTracker.tsx
-'use client';
-import { useEffect } from 'react';
-import { init } from 'stat18ion';
-
-export default function StatTracker() {
-  useEffect(() => {
-    init({ siteId: 'YOUR_UUID_HERE' });
-  }, []);
-  return null;
-}
-```
-
-Then add it to your `app/layout.tsx`:
-
-```tsx
-import StatTracker from './components/StatTracker';
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-        <StatTracker />
-        {children}
-      </body>
-    </html>
-  );
-}
 ```
 
 ## Features

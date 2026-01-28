@@ -2,18 +2,25 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { ArrowLeft } from 'lucide-react';
+import {
+    AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar,
+    PieChart, Pie, Cell
+} from 'recharts';
+import {
+    ArrowLeft, Terminal, Activity, Globe, Monitor, Smartphone,
+    MousePointer2, UserCheck, Timer, Share2, Download, Cpu
+} from 'lucide-react';
 import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+const CHART_COLORS = ['#00f3ff', '#7000ff', '#ff00c8', '#00ff41', '#ff8a00'];
 
 export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    // Unwrapping params Promise (Next.js 15+ requirement)
     const resolvedParams = use(params);
     const siteId = resolvedParams.id;
 
@@ -24,116 +31,238 @@ export default function SiteAnalyticsPage({ params }: { params: Promise<{ id: st
             return;
         }
 
-        fetch(`${API_URL}/api/stats/${siteId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => {
-                if (res.status === 401) throw new Error('Unauthorized');
-                if (res.status === 403) throw new Error('Access Denied');
-                return res.json();
+        const fetchStats = () => {
+            fetch(`${API_URL}/api/stats/${siteId}`, {
+                headers: { Authorization: `Bearer ${token}` },
             })
-            .then((data) => {
-                setStats(data);
-                setLoading(false);
-            })
-            .catch(() => router.push('/dashboard'));
+                .then((res) => {
+                    if (res.status === 401) throw new Error('Unauthorized');
+                    return res.json();
+                })
+                .then((data) => {
+                    setStats(data);
+                    setLoading(false);
+                })
+                .catch(() => router.push('/dashboard'));
+        };
+
+        fetchStats();
+        const interval = setInterval(fetchStats, 30000); // Poll every 30s
+        return () => clearInterval(interval);
     }, [siteId, router]);
 
-    if (loading) return <div className="p-8 text-white">Loading stats...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center font-mono">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-1 bg-cyan-950 overflow-hidden">
+                    <div className="h-full bg-cyan-500 w-1/2 animate-[loading_1s_ease-in-out_infinite]" />
+                </div>
+                <span className="text-cyan-500/40 text-[10px] uppercase tracking-[0.5em] animate-pulse">CONNECTING_TO_MATRIX...</span>
+            </div>
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white p-8">
-            <header className="mb-8 pb-4 border-b border-zinc-800">
-                <Link href="/dashboard" className="flex items-center text-sm text-zinc-500 hover:text-white mb-4 transition-colors">
-                    <ArrowLeft size={16} className="mr-1" /> Back to Sites
+        <div className="min-h-screen p-6 md:p-12 font-mono selection:bg-cyan-500/30">
+            <div className="scanline" />
+
+            {/* Header / Nav */}
+            <header className="mb-12 border-b border-cyan-500/10 pb-8 relative">
+                <Link href="/dashboard" className="inline-flex items-center text-[10px] text-cyan-500/40 hover:text-cyan-400 mb-6 transition-colors uppercase tracking-[0.3em] group">
+                    <ArrowLeft size={12} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back_to_Cluster
                 </Link>
-                <div className="flex justify-between items-end">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-                        <p className="text-zinc-500 mt-1 font-mono text-sm">ID: {siteId}</p>
+
+                <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
+                    <div className="w-full lg:w-auto">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Activity size={18} className="text-cyan-400 animate-pulse" />
+                            <h1 className="text-4xl font-black tracking-tighter glow-text uppercase">Node_Data_Stream</h1>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <code className="text-[10px] text-cyan-500/60 bg-cyan-950/20 px-3 py-1 border border-cyan-500/10 uppercase tracking-widest">UID // {siteId}</code>
+                            <div className="flex items-center gap-1.5 px-3 py-1 border border-green-500/20 bg-green-500/5 text-green-500 font-bold text-[9px] uppercase tracking-widest">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Live_Now: {stats.live_now}
+                            </div>
+                        </div>
                     </div>
-                    <div className="hidden md:block">
-                        <code className="text-xs bg-zinc-900 border border-zinc-800 px-3 py-2 rounded text-zinc-400">
-                            npm install stat18ion
-                        </code>
+
+                    <div className="flex gap-4 w-full lg:w-auto">
+                        <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2 border border-cyan-500/20 text-cyan-500/60 hover:bg-cyan-500/5 text-xs uppercase tracking-widest transition-all">
+                            <Download size={14} /> Export_Log
+                        </button>
+                        <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-cyan-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all">
+                            <Terminal size={14} /> Get_Code
+                        </button>
                     </div>
                 </div>
             </header>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl">
-                    <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Total Views</h3>
-                    <p className="text-3xl font-bold mt-2">{stats.total_views}</p>
+            <main className="space-y-8">
+                {/* KPI Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                        { label: 'Total_Visitors', val: stats.total_views, icon: <MousePointer2 size={16} /> },
+                        { label: 'Unique_Nodes', val: stats.unique_visitors, icon: <UserCheck size={16} /> },
+                        { label: 'Matrix_Latency', val: 'Low', icon: <Timer size={16} /> },
+                        { label: 'Signal_Strength', val: '98%', icon: <Share2 size={16} /> }
+                    ].map((idx, i) => (
+                        <div key={i} className="terminal-border p-6 bg-cyan-950/10 relative group overflow-hidden">
+                            <div className="absolute top-0 right-0 p-2 text-cyan-500/20 group-hover:text-cyan-500/40 transition-colors">
+                                {idx.icon}
+                            </div>
+                            <h3 className="text-[10px] text-cyan-500/40 uppercase tracking-[0.2em] mb-2">{idx.label}</h3>
+                            <p className="text-4xl font-black text-cyan-100 group-hover:glow-text transition-all duration-500">{idx.val}</p>
+                        </div>
+                    ))}
                 </div>
-                <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl">
-                    <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Unique Visitors</h3>
-                    <p className="text-3xl font-bold mt-2">{stats.unique_visitors}</p>
-                </div>
-                <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl">
-                    <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Live Now</h3>
-                    <p className="text-3xl font-bold mt-2 text-green-500 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        -
-                    </p>
-                </div>
-                <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl">
-                    <h3 className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Bounce Rate</h3>
-                    <p className="text-3xl font-bold mt-2">- %</p>
-                </div>
-            </div>
 
-            {/* Main Chart */}
-            <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl h-80 mb-8">
-                <h3 className="text-lg font-semibold mb-6 text-zinc-200">Views (Last 7 Days)</h3>
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={stats.daily_views}>
-                        <XAxis dataKey="date" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                        <Tooltip
-                            contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fff' }}
-                            itemStyle={{ color: '#fff' }}
-                            cursor={{ stroke: '#3f3f46' }}
-                        />
-                        <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#1d4ed8' }} activeDot={{ r: 6 }} />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Data Tables */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Top Pages */}
-                <div className="p-0 border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30">
-                    <div className="p-4 border-b border-zinc-800 bg-zinc-900/50">
-                        <h3 className="font-semibold text-zinc-200">Top Pages</h3>
+                {/* Main Visualization */}
+                <div className="terminal-border bg-cyan-950/20 p-8 space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-sm text-cyan-100 uppercase tracking-[0.2em]">Temporal_Data_Flow // VIEW_COUNT</h3>
+                        <div className="flex gap-2">
+                            <div className="w-2 h-2 rounded-full bg-cyan-500" />
+                            <span className="text-[9px] text-cyan-500/60 uppercase tracking-widest">Last_7_Days</span>
+                        </div>
                     </div>
-                    <ul className="divide-y divide-zinc-800/50">
-                        {stats.top_pages.map((page: any, i: number) => (
-                            <li key={i} className="flex justify-between items-center p-4 hover:bg-zinc-900/50 transition-colors">
-                                <span className="text-sm font-mono text-zinc-400 truncate max-w-[200px]">{page.path}</span>
-                                <span className="text-sm font-bold">{page.count}</span>
-                            </li>
-                        ))}
-                        {stats.top_pages.length === 0 && <li className="p-4 text-center text-zinc-500 text-sm">No data yet</li>}
-                    </ul>
+                    <div className="h-80 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={stats.daily_views}>
+                                <defs>
+                                    <linearGradient id="glowGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#00f3ff" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#00f3ff" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="#00f3ff"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={{ stroke: 'rgba(0, 243, 255, 0.1)' }}
+                                    tickFormatter={(val) => val.split('-').slice(1).join('/')}
+                                />
+                                <YAxis
+                                    stroke="#00f3ff"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={{ stroke: 'rgba(0, 243, 255, 0.1)' }}
+                                />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'rgba(0, 30, 35, 0.9)', border: '1px solid rgba(0, 243, 255, 0.2)', fontSize: '10px' }}
+                                    itemStyle={{ color: '#00f3ff' }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="count"
+                                    stroke="#00f3ff"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#glowGradient)"
+                                    animationDuration={2000}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
-                {/* Top Referrers */}
-                <div className="p-0 border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/30">
-                    <div className="p-4 border-b border-zinc-800 bg-zinc-900/50">
-                        <h3 className="font-semibold text-zinc-200">Top Sources</h3>
+                {/* Secondary Data Sections */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Hardware Stats */}
+                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Devices */}
+                        <div className="terminal-border bg-cyan-950/10 p-6 space-y-6">
+                            <h3 className="text-xs font-bold text-cyan-200 uppercase tracking-widest border-b border-cyan-500/10 pb-4 flex items-center gap-2">
+                                <Monitor size={14} className="text-cyan-500" /> Environment_Composition
+                            </h3>
+                            <div className="space-y-6">
+                                {stats.top_browsers.map((b: any, i: number) => (
+                                    <div key={i} className="space-y-2">
+                                        <div className="flex justify-between text-[10px] uppercase tracking-widest">
+                                            <span className="text-cyan-100">{b.browser}</span>
+                                            <span className="text-cyan-500/60">{b.count} OPS</span>
+                                        </div>
+                                        <div className="h-1 bg-cyan-500/5 overflow-hidden">
+                                            <div
+                                                className="h-full bg-cyan-500 transition-all duration-1000 ease-out"
+                                                style={{ width: `${(b.count / stats.total_views) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* OS */}
+                        <div className="terminal-border bg-cyan-950/10 p-6 space-y-6">
+                            <h3 className="text-xs font-bold text-cyan-200 uppercase tracking-widest border-b border-cyan-500/10 pb-4 flex items-center gap-2">
+                                <Cpu size={14} className="text-cyan-500" /> OS_Distributions
+                            </h3>
+                            <div className="h-48">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={stats.top_os}
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="count"
+                                            nameKey="os"
+                                        >
+                                            {stats.top_os.map((entry: any, index: number) => (
+                                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} stroke="rgba(0,0,0,0.5)" />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: 'black', border: '1px solid #333', fontSize: '10px' }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                {stats.top_os.map((os: any, i: number) => (
+                                    <div key={i} className="flex items-center gap-2 text-[9px] uppercase tracking-widest text-cyan-500/60">
+                                        <div className="w-1.5 h-1.5" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                                        {os.os}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                    <ul className="divide-y divide-zinc-800/50">
-                        {stats.top_referrers.map((ref: any, i: number) => (
-                            <li key={i} className="flex justify-between items-center p-4 hover:bg-zinc-900/50 transition-colors">
-                                <span className="text-sm text-zinc-400 truncate max-w-[200px]">{ref.referrer || 'Direct / Unknown'}</span>
-                                <span className="text-sm font-bold">{ref.count}</span>
-                            </li>
-                        ))}
-                        {stats.top_referrers.length === 0 && <li className="p-4 text-center text-zinc-500 text-sm">No data yet</li>}
-                    </ul>
+
+                    {/* Navigation Log */}
+                    <div className="terminal-border bg-cyan-950/20 flex flex-col">
+                        <div className="p-4 bg-cyan-500/5 border-b border-cyan-500/10">
+                            <h3 className="text-xs font-bold text-cyan-100 uppercase tracking-widest flex items-center gap-2">
+                                <Globe size={14} className="text-cyan-500" /> Transmission_Logs
+                            </h3>
+                        </div>
+                        <div className="flex-1 overflow-auto max-h-[400px]">
+                            <table className="w-full text-left font-mono text-[10px]">
+                                <thead className="sticky top-0 bg-black uppercase tracking-widest text-cyan-500/40">
+                                    <tr>
+                                        <th className="p-4 border-b border-cyan-500/10">Resource_Path</th>
+                                        <th className="p-4 border-b border-cyan-500/10 text-right">Packets</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-cyan-500/5">
+                                    {stats.top_pages.map((p: any, i: number) => (
+                                        <tr key={i} className="hover:bg-cyan-500/5 transition-colors group">
+                                            <td className="p-4 text-cyan-100 group-hover:text-cyan-400 truncate max-w-[150px]">{p.path}</td>
+                                            <td className="p-4 text-right text-cyan-500/80 font-bold">{p.count}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </main>
+
+            <footer className="mt-20 pt-12 border-t border-cyan-500/10 opacity-20 flex justify-between text-[8px] uppercase tracking-[0.4em]">
+                <div>ST18_NODE_IO_STATUS : OK</div>
+                <div>AWAITING_FURTHER_TELEMETRY...</div>
+            </footer>
         </div>
     );
 }

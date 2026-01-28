@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
+import { UAParser } from 'ua-parser-js';
+import { migrate } from './migrate';
 
 dotenv.config();
 
@@ -137,7 +139,7 @@ app.post('/api/auth/login', async (req, res) => {
         // console.log('Login Payload:', req.body); 
 
         const { email, password } = registerSchema.parse(req.body);
-        
+
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
         if (result.rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
@@ -155,7 +157,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         // If it is a Zod validation error, it will show you exactly which field failed
         if (err.issues) {
-             console.log('Validation Issues:', JSON.stringify(err.issues, null, 2));
+            console.log('Validation Issues:', JSON.stringify(err.issues, null, 2));
         }
 
         res.status(400).json({ error: 'Invalid input' });
@@ -194,16 +196,21 @@ app.post('/api/event', async (req, res) => {
 
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
         const country = (req.headers['x-vercel-ip-country'] as string) || 'Unknown';
-        const deviceType = data.ua.toLowerCase().includes('mobile') ? 'mobile' : 'desktop';
 
-        // Hash IP + UA for privacy-friendly unique visitor tracking (daily salt ideally, but simple hash for now)
+        const parser = new UAParser(data.ua);
+        const browser = parser.getBrowser().name || 'Unknown';
+        const os = parser.getOS().name || 'Unknown';
+        const device = parser.getDevice().model || 'Desktop';
+        const deviceType = parser.getDevice().type || 'desktop';
+
+        // Hash IP + UA for privacy-friendly unique visitor tracking
         const visitorHash = Buffer.from(`${ip}-${data.ua}-${new Date().toISOString().slice(0, 10)}`).toString('base64');
 
         const query = `
-      INSERT INTO events (site_id, path, referrer, device_type, country, visitor_hash, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, to_timestamp($7 / 1000.0))
+      INSERT INTO events (site_id, path, referrer, device_type, browser, os, device, country, visitor_hash, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, to_timestamp($10 / 1000.0))
     `;
-        const values = [data.siteId, data.path, data.referrer, deviceType, country, visitorHash, data.ts];
+        const values = [data.siteId, data.path, data.referrer, deviceType, browser, os, device, country, visitorHash, data.ts];
 
         pool.query(query, values).catch(err => console.error('DB Insert Error:', err));
 
@@ -225,9 +232,18 @@ app.get('/api/stats/:siteId', authenticate, async (req: any, res) => {
     try {
         const totalViews = await pool.query('SELECT COUNT(*) as count FROM events WHERE site_id = $1', [siteId]);
         const uniqueVisitors = await pool.query('SELECT COUNT(DISTINCT visitor_hash) as count FROM events WHERE site_id = $1', [siteId]);
+
+        // Live Now (Events in last 5 minutes)
+        const liveNow = await pool.query('SELECT COUNT(DISTINCT visitor_hash) as count FROM events WHERE site_id = $1 AND created_at > NOW() - INTERVAL \'5 minutes\'', [siteId]);
+
         const topPages = await pool.query('SELECT path, COUNT(*) as count FROM events WHERE site_id = $1 GROUP BY path ORDER BY count DESC LIMIT 5', [siteId]);
         const topReferrers = await pool.query('SELECT referrer, COUNT(*) as count FROM events WHERE site_id = $1 GROUP BY referrer ORDER BY count DESC LIMIT 5', [siteId]);
         const topCountries = await pool.query('SELECT country, COUNT(*) as count FROM events WHERE site_id = $1 GROUP BY country ORDER BY count DESC LIMIT 5', [siteId]);
+
+        // New Metrics
+        const topBrowsers = await pool.query('SELECT browser, COUNT(*) as count FROM events WHERE site_id = $1 GROUP BY browser ORDER BY count DESC LIMIT 5', [siteId]);
+        const topOS = await pool.query('SELECT os, COUNT(*) as count FROM events WHERE site_id = $1 GROUP BY os ORDER BY count DESC LIMIT 5', [siteId]);
+        const topDevices = await pool.query('SELECT device, COUNT(*) as count FROM events WHERE site_id = $1 GROUP BY device ORDER BY count DESC LIMIT 5', [siteId]);
 
         // Daily views (last 7 days)
         const dailyViews = await pool.query(`
@@ -241,9 +257,13 @@ app.get('/api/stats/:siteId', authenticate, async (req: any, res) => {
         res.json({
             total_views: totalViews.rows[0].count,
             unique_visitors: uniqueVisitors.rows[0].count,
+            live_now: liveNow.rows[0].count,
             top_pages: topPages.rows,
             top_referrers: topReferrers.rows,
             top_countries: topCountries.rows,
+            top_browsers: topBrowsers.rows,
+            top_os: topOS.rows,
+            top_devices: topDevices.rows,
             daily_views: dailyViews.rows
         });
     } catch (err) {
@@ -252,6 +272,12 @@ app.get('/api/stats/:siteId', authenticate, async (req: any, res) => {
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+    try {
+        await migrate();
+        console.log('Migration check complete.');
+    } catch (err) {
+        console.error('Migration failed during startup:', err);
+    }
 });

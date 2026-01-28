@@ -7,7 +7,7 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-const migrate = async () => {
+export const migrate = async () => {
     try {
         console.log('Starting SaaS Migration...');
 
@@ -36,9 +36,6 @@ const migrate = async () => {
         console.log("Table 'sites' ready.");
 
         // 3. Events Table (Update)
-        // We need to ensure visitor_hash exists and site_id is linked (soft link or FK)
-        // For MVP, if events exist with valid UUID site_ids from previous generic tests, we leave them.
-        // We will alter table to add visitor_hash if missing.
         await pool.query(`
             CREATE TABLE IF NOT EXISTS events (
                 id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -46,15 +43,23 @@ const migrate = async () => {
                 path TEXT NOT NULL,
                 referrer TEXT,
                 device_type TEXT,
+                browser TEXT,
+                os TEXT,
+                device TEXT,
                 country TEXT,
                 visitor_hash TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
             );
             
+            ALTER TABLE events ADD COLUMN IF NOT EXISTS browser TEXT;
+            ALTER TABLE events ADD COLUMN IF NOT EXISTS os TEXT;
+            ALTER TABLE events ADD COLUMN IF NOT EXISTS device TEXT;
             ALTER TABLE events ADD COLUMN IF NOT EXISTS visitor_hash TEXT;
             
             CREATE INDEX IF NOT EXISTS idx_site_id ON events(site_id);
             CREATE INDEX IF NOT EXISTS idx_created_at ON events(created_at);
+            CREATE INDEX IF NOT EXISTS idx_browser ON events(browser);
+            CREATE INDEX IF NOT EXISTS idx_os ON events(os);
         `);
         console.log("Table 'events' ready.");
 
@@ -64,5 +69,3 @@ const migrate = async () => {
         await pool.end();
     }
 };
-
-migrate();
